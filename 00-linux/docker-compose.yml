@@ -1,0 +1,28 @@
+services:
+  linux-lab:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: nti-linux-lab:session1
+    container_name: linux-lab
+    hostname: nti-server
+    tty: true
+    stdin_open: true
+    volumes:
+      - lab-home:/home
+      - lab-srv:/srv
+
+    # INTERNET ON
+    networks:
+      - lab-net
+
+    # INTERNET OFF
+    # network_mode: none
+
+networks:
+  lab-net:
+    driver: bridge
+
+volumes:
+  lab-home:
+  lab-srv:
