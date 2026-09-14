@@ -1,0 +1,34 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: db-lab-mysql
+    restart: no
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: company
+      MYSQL_USER: app_user
+      MYSQL_PASSWORD: app123
+    ports:
+      - "3306:3306"
+    volumes:
+      - db-lab-data:/var/lib/mysql
+    networks:
+      - db-lab-net
+
+  adminer:
+    image: adminer:latest
+    container_name: db-lab-adminer
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    ports:
+      - "8080:8080"
+    networks:
+      - db-lab-net
+
+networks:
+  db-lab-net:
+    driver: bridge
+
+volumes:
+  db-lab-data:
