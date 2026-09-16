@@ -1,0 +1,45 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: pyint-lab-mysql
+    restart: no
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: company
+    ports:
+      - "3306:3306"
+    volumes:
+      - pyint-lab-data:/var/lib/mysql
+      # Anything in ./init runs automatically the FIRST time the data volume
+      # is created -- so the schema + sample data are ready before the demo
+      # starts, no manual "load the .sql file" step needed this time.
+      - ./init:/docker-entrypoint-initdb.d
+    networks:
+      - pyint-lab-net
+
+  adminer:
+    image: adminer:latest
+    container_name: pyint-lab-adminer
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    ports:
+      - "8080:8080"
+    networks:
+      - pyint-lab-net
+
+  python:
+    build: .
+    container_name: pyint-lab-python
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    networks:
+      - pyint-lab-net
+
+networks:
+  pyint-lab-net:
+    driver: bridge
+
+volumes:
+  pyint-lab-data:
