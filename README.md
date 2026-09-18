@@ -53,9 +53,57 @@ cd 00-linux
 docker compose up -d --build
 ```
 
-## A note for Windows users
+## Windows setup checklist (do all of these, in order)
 
-Most of you are on Windows; I'm on Ubuntu. Everything here is built to work identically on both through Docker, but wherever a step genuinely differs between Windows and Linux (line endings, terminal choice, file paths, etc.), it will be called out inside that specific lab's README — not here.
+1. **BIOS — enable virtualization** (Docker won't run without this):
+   - Restart PC → enter BIOS/UEFI (`Del`, `F2`, `F10`, or `Esc` at boot).
+   - Find **Intel VT-x** / **Intel Virtualization Technology** / **AMD-V** / **SVM Mode** (under *Advanced*, *CPU*, or *Security*) → **Enable** → Save (`F10`) → reboot.
+   - Managed/work laptop and option greyed out → ask IT to enable it.
+   - Verify: Task Manager (`Ctrl+Shift+Esc`) → Performance → CPU → **Virtualization: Enabled**.
+
+2. **Install/enable WSL2** — PowerShell **as Administrator**:
+   ```powershell
+   wsl --install
+   wsl --set-default-version 2
+   ```
+   Restart the PC (required). Already had WSL? Update instead:
+   ```powershell
+   wsl --update
+   wsl --shutdown
+   ```
+   `wsl --install` failed (old Windows build)? Run, then restart:
+   ```powershell
+   dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+   dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
+   ```
+
+3. **Install Docker Desktop**: https://www.docker.com/products/docker-desktop/
+   - Settings → General → **"Use the WSL 2 based engine"** ✅
+   - Settings → Resources → WSL Integration → toggle your distro ✅ → Apply & Restart
+
+4. **Verify everything works**, in order:
+   ```powershell
+   wsl --status
+   ```
+   ```bash
+   docker --version
+   docker compose version
+   docker run hello-world
+   ```
+   If `hello-world` prints its message, you're done. If any command fails, fix it now — don't start a lab yet.
+
+## Error → fix
+
+| Error | Fix |
+|---|---|
+| `0x80370102` / "required feature is not installed" | Virtualization off in BIOS → step 1 |
+| `WSL 2 requires an update to its kernel component` | `wsl --update` |
+| `Wsl/Service/CreateInstance/HCS_E_...` | Update VirtualBox/VMware to latest, or disable conflicting antivirus |
+| Docker Desktop stuck on "Starting..." | `wsl --shutdown`, quit Docker Desktop fully, reopen |
+| `docker: command not found` in WSL terminal | Enable WSL Integration for your distro (step 3) |
+| Can't reach `localhost:<port>` | Use `127.0.0.1`; check firewall/VPN |
+| `$'\r': command not found` in scripts | `git config --global core.autocrlf input`, or `dos2unix script.sh` |
+| WSL using all your RAM | `%UserProfile%\.wslconfig`:<br>`[wsl2]`<br>`memory=4GB`<br>`processors=2`<br>then `wsl --shutdown` |
 
 ## Getting help
 
