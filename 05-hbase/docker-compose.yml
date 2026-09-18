@@ -1,0 +1,65 @@
+services:
+  hbase-master:
+    image: bde2020/hbase-master:1.0.0-hbase1.2.6
+    container_name: hbase-master
+    hostname: hbase-master
+    restart: "no"
+    env_file:
+      - ../common/hadoop.env
+    environment:
+      - HBASE_CONF_hbase_cluster_distributed=true
+      - HBASE_CONF_hbase_rootdir=hdfs://namenode:8020/hbase
+      - HBASE_CONF_hbase_zookeeper_quorum=zookeeper1,zookeeper2,zookeeper3
+      - HBASE_MANAGES_ZK=false
+      - SERVICE_PRECONDITION=namenode:9870 datanode:9864 zookeeper1:2181 zookeeper2:2181 zookeeper3:2181
+    ports:
+      - "16010:16010"
+      - "16000:16000"
+    networks:
+      - bigdata-net
+
+  hbase-regionserver1:
+    image: bde2020/hbase-regionserver:1.0.0-hbase1.2.6
+    container_name: hbase-regionserver1
+    hostname: hbase-regionserver1
+    restart: "no"
+    env_file:
+      - ../common/hadoop.env
+    environment:
+      - HBASE_CONF_hbase_cluster_distributed=true
+      - HBASE_CONF_hbase_rootdir=hdfs://namenode:8020/hbase
+      - HBASE_CONF_hbase_zookeeper_quorum=zookeeper1,zookeeper2,zookeeper3
+      - HBASE_MANAGES_ZK=false
+      - HBASE_CONF_hbase_regionserver_hostname=hbase-regionserver1
+      - SERVICE_PRECONDITION=namenode:9870 datanode:9864 zookeeper1:2181 hbase-master:16010
+    ports:
+      - "16030:16030"
+    depends_on:
+      - hbase-master
+    networks:
+      - bigdata-net
+
+  hbase-regionserver2:
+    image: bde2020/hbase-regionserver:1.0.0-hbase1.2.6
+    container_name: hbase-regionserver2
+    hostname: hbase-regionserver2
+    restart: "no"
+    env_file:
+      - ../common/hadoop.env
+    environment:
+      - HBASE_CONF_hbase_cluster_distributed=true
+      - HBASE_CONF_hbase_rootdir=hdfs://namenode:8020/hbase
+      - HBASE_CONF_hbase_zookeeper_quorum=zookeeper1,zookeeper2,zookeeper3
+      - HBASE_MANAGES_ZK=false
+      - HBASE_CONF_hbase_regionserver_hostname=hbase-regionserver2
+      - SERVICE_PRECONDITION=namenode:9870 datanode:9864 zookeeper1:2181 hbase-master:16010
+    ports:
+      - "16031:16030"
+    depends_on:
+      - hbase-master
+    networks:
+      - bigdata-net
+
+networks:
+  bigdata-net:
+    external: true
