@@ -1,0 +1,49 @@
+services:
+  spark-master:
+    image: apache/spark:3.5.1
+    container_name: spark-master
+    hostname: spark-master
+    restart: "no"
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master
+    ports:
+      - "8080:8080"   # Master web UI
+      - "7077:7077"   # Master RPC — this is the spark://spark-master:7077 URL
+      - "4040:4040"   # Application (job) UI — only live while a job is running
+    networks:
+      - bigdata-net
+
+  spark-worker1:
+    image: apache/spark:3.5.1
+    container_name: spark-worker1
+    hostname: spark-worker1
+    restart: "no"
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    environment:
+      - SPARK_WORKER_CORES=1
+      - SPARK_WORKER_MEMORY=1g
+    ports:
+      - "8081:8081"
+    depends_on:
+      - spark-master
+    networks:
+      - bigdata-net
+
+  spark-worker2:
+    image: apache/spark:3.5.1
+    container_name: spark-worker2
+    hostname: spark-worker2
+    restart: "no"
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    environment:
+      - SPARK_WORKER_CORES=1
+      - SPARK_WORKER_MEMORY=1g
+    ports:
+      - "8082:8081"
+    depends_on:
+      - spark-master
+    networks:
+      - bigdata-net
+
+networks:
+  bigdata-net:
+    external: true
